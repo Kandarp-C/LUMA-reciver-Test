@@ -7,28 +7,35 @@
 </head>
 <body>
   <h3>QR Sequence MVP</h3>
-  <video id="video" autoplay playsinline style="width: 400px;"></video>
+  
+  <button id="startBtn">Start Camera</button>
+  <br><br>
+  <video id="video" autoplay playsinline style="width: 400px; display: none;"></video>
   <canvas id="canvas" hidden></canvas>
   <br>
-  <button id="downloadBtn">Download Captured Data</button>
+  <button id="downloadBtn" style="display: none;">Download Captured Data</button>
 
   <script>
+    const startBtn = document.getElementById('startBtn');
     const video = document.getElementById('video');
     const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
     const downloadBtn = document.getElementById('downloadBtn');
 
-    let capturedData = new Set(); // store unique QR results
+    let capturedData = new Set(); // unique QR results
 
-    // 1. Ask for camera access
-    navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
-      .then(stream => {
-        video.srcObject = stream;
-        requestAnimationFrame(scanFrame);
-      })
-      .catch(err => console.error("Camera error:", err));
+    startBtn.addEventListener('click', () => {
+      navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+        .then(stream => {
+          video.srcObject = stream;
+          video.style.display = "block";
+          downloadBtn.style.display = "inline-block";
+          startBtn.style.display = "none";
+          requestAnimationFrame(scanFrame);
+        })
+        .catch(err => console.error("Camera error:", err));
+    });
 
-    // 2. Scan each frame
     function scanFrame() {
       if (video.readyState === video.HAVE_ENOUGH_DATA) {
         canvas.width = video.videoWidth;
@@ -48,7 +55,6 @@
       requestAnimationFrame(scanFrame);
     }
 
-    // 3. Download captured results
     downloadBtn.addEventListener('click', () => {
       const blob = new Blob([Array.from(capturedData).join("\n")], { type: "text/plain" });
       const link = document.createElement('a');
